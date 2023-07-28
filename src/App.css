@@ -4,18 +4,15 @@
   padding: 2rem;
   text-align: center;
 }
-
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
+.Divide{
+  width:80px;
 }
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+.wexin{
+  font-size:large;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background:#F5F5F5;
 }
 
 @keyframes logo-spin {
