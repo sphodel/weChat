@@ -4,7 +4,9 @@
 }
 
 .wexin {
-  font-size: large;
+  position:fixed;
+  width:100%;
+  font-size: 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -36,11 +38,13 @@
 }
 
 .icon {
+  font-size:20px;
   margin-right: 20px;
   box-sizing: border-box;
 }
 .chatItem {
-  height: 100px;
+
+  height:100px;
   display: flex;
   flex-direction: row;
   flex: 1;
@@ -89,4 +93,53 @@
 body {
   margin: 0;
   box-sizing: border-box;
+}
+.bottoms{
+  bottom:0;
+  position:fixed;
+  width:100%;
+  font-size:18px;
+  background:#f5f5f5;
+  align-content: flex-end;
+  display:flex;
+  box-sizing: border-box;
+  height:80px;
+  align-items: center;
+
+}
+.logo{
+  flex-direction: column;
+  justify-content: center;
+  display:flex;
+  flex:1;
+  box-sizing: border-box;
+  align-items: center;
+
+}
+.contact{
+  flex-direction: column;
+  justify-content: center;
+  display:flex;
+  flex:1;
+  box-sizing: border-box;
+  align-items: center;
+}
+.find{
+  flex-direction: column;
+  justify-content: center;
+  display:flex;
+  flex:1;
+  box-sizing: border-box;
+  align-items: center;
+}
+.user{
+  flex-direction: column;
+  justify-content: center;
+  display:flex;
+  flex:1;
+  box-sizing: border-box;
+  align-items: center;
+}
+.nav-link-active{
+  text-decoration: none;
 }
