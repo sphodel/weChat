@@ -1,145 +1,32 @@
-.divide {
-  width: 80px;
-  box-sizing: border-box;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+.fadeIn {
+    animation: 0.5s fadeIn forwards;
 }
 
-.wexin {
-  position:fixed;
-  width:100%;
-  font-size: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: #f5f5f5;
-  height: 80px;
-  box-sizing: border-box;
+.fadeOut {
+    animation: 0.5s fadeOut forwards;
 }
 
-.left {
-  display: flex;
-  flex: 1;
-  box-sizing: border-box;
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translate(-20px, 0);
+    }
+    to {
+        opacity: 1;
+        transform: translate(0px, 0px);
+    }
 }
 
-.center {
-  display: flex;
-  flex: 1;
-  justify-content: center;
-  align-items: center;
-  box-sizing: border-box;
-}
-
-.right {
-  display: flex;
-  flex: 1;
-  justify-content: flex-end;
-  align-items: center;
-  box-sizing: border-box;
-}
-
-.icon {
-  font-size:20px;
-  margin-right: 20px;
-  box-sizing: border-box;
-}
-.chatItem {
-
-  height:100px;
-  display: flex;
-  flex-direction: row;
-  flex: 1;
-  box-sizing: border-box;
-}
-.chatAvatarView {
-  display: flex;
-  width: 100px;
-  height: 100px;
-  margin-right: 10px;
-  align-items: center;
-  justify-content: center;
-  box-sizing: border-box;
-}
-.avatar {
-  height: 80px;
-  width: 80px;
-  box-sizing: border-box;
-}
-.chatContent {
-  display: flex;
-  flex-direction: column;
-  padding-bottom: 15px;
-  padding-top: 15px;
-  justify-content: space-between;
-  flex: 1;
-  box-sizing: border-box;
-}
-.username {
-  font-size: 20px;
-  box-sizing: border-box;
-}
-.comment {
-  font-size: 16px;
-  color: gray;
-  box-sizing: border-box;
-}
-.dateView {
-  padding-top: 15px;
-  font-size: 16px;
-  color: gray;
-  padding-right: 10px;
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-  box-sizing: border-box;
-}
-.bottoms{
-  bottom:0;
-  position:fixed;
-  width:100%;
-  font-size:18px;
-  background:#f5f5f5;
-  align-content: flex-end;
-  display:flex;
-  box-sizing: border-box;
-  height:80px;
-  align-items: center;
-
-}
-.logo{
-  flex-direction: column;
-  justify-content: center;
-  display:flex;
-  flex:1;
-  box-sizing: border-box;
-  align-items: center;
-
-}
-.contact{
-  flex-direction: column;
-  justify-content: center;
-  display:flex;
-  flex:1;
-  box-sizing: border-box;
-  align-items: center;
-}
-.find{
-  flex-direction: column;
-  justify-content: center;
-  display:flex;
-  flex:1;
-  box-sizing: border-box;
-  align-items: center;
-}
-.user{
-  flex-direction: column;
-  justify-content: center;
-  display:flex;
-  flex:1;
-  box-sizing: border-box;
-  align-items: center;
-}
-.nav-link-active{
-  text-decoration: none;
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+        transform: translate(0px, 0px);
+    }
+    to {
+        transform: translate(-20px, 0);
+        opacity: 0;
+    }
 }
