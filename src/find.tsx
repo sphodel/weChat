@@ -9,6 +9,7 @@ const names = [
   { name1: "购物", name2: "游戏" },
   { name1: "小程序" },
 ];
+
 const Find = () => {
   return (
     <>

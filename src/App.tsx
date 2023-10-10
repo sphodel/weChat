@@ -18,7 +18,12 @@ const App = () => {
   const ref = useRef<CarouselRef>(null);
   const [viewIndex, setViewIndex] = useState(0);
   const [transitionStage, setTransistionStage] = useState("fadeIn");
-  const contentHeight = window.screen.height - 128;
+  const [contentHeight, setContentHeight] = useState(window.innerHeight - 128);
+  useEffect(() => {
+    window.addEventListener("resize", () => {
+      setContentHeight(window.innerHeight - 128);
+    });
+  }, []);
   useEffect(() => {
     setTransistionStage("fadeIn");
   }, []);
@@ -123,7 +128,7 @@ const Underside = ({
 }) => {
   return (
     <div
-      className="bottom-0 w-full text-xl bg-neutral-100 content-center flex box-border items-center"
+      className="w-full text-xl bg-neutral-100 content-center flex box-border items-center"
       style={{ height: "64px" }}
     >
       {tabs.map((tab, i) => (
