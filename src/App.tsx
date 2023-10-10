@@ -11,14 +11,14 @@ import "./App.css";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { CarouselRef } from "antd/es/carousel";
-
+import Find from "./find.tsx";
 const list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 const App = () => {
   const navigate = useNavigate();
   const ref = useRef<CarouselRef>(null);
   const [viewIndex, setViewIndex] = useState(0);
   const [transitionStage, setTransistionStage] = useState("fadeIn");
-  const contentHeight = window.screen.height - 164;
+  const contentHeight = window.screen.height - 128;
   useEffect(() => {
     setTransistionStage("fadeIn");
   }, []);
@@ -31,11 +31,13 @@ const App = () => {
     >
       <header
         className="w-full text-xl flex items-center justify-between bg-neutral-100 box-border"
-        style={{ height: "100px" }}
+        style={{ height: "64px" }}
       >
         <div className="flex flex-1 box-border" />
         <div className="flex flex-1 justify-center items-center box-border">
-          微信
+          {tabs.map((tab, i) => (
+            <div>{i === viewIndex && `${tab.name}`} </div>
+          ))}
         </div>
         <div className="flex flex-1 justify-end items-center box-border">
           <SearchOutlined className={"text-xl mr-5 box-border"} />
@@ -64,15 +66,8 @@ const App = () => {
             ))}
           </div>
           <div>2</div>
-          <div
-            onClick={() => {
-              setTransistionStage("fadeOut");
-              setTimeout(() => {
-                navigate("find");
-              }, 300);
-            }}
-          >
-            3
+          <div>
+            <Find />
           </div>
           <div>4</div>
         </Carousel>
@@ -134,7 +129,7 @@ const Underside = ({
       {tabs.map((tab, i) => (
         <div
           className={`flex-col justify-center flex flex-1 box-border items-center ${
-            i === index ? "text-blue-600/75" : ""
+            i === index ? "text-green-600" : ""
           }`}
           key={tab.name}
           onClick={() => {

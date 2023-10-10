@@ -1,4 +1,4 @@
-import "./chatui.css";
+import "./App.css";
 import { useState } from "react";
 import {
   LeftOutlined,
