@@ -12,13 +12,26 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { CarouselRef } from "antd/es/carousel";
 import Find from "./find.tsx";
-const list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+import { useQuery } from "@apollo/client";
+import { gql } from "./__generated__";
+
+// @ts-ignore
+const GET_USERS = gql`
+  query getUsers {
+    users {
+      id
+      name
+    }
+  }
+`;
+
 const App = () => {
   const navigate = useNavigate();
   const ref = useRef<CarouselRef>(null);
   const [viewIndex, setViewIndex] = useState(0);
   const [transitionStage, setTransistionStage] = useState("fadeIn");
   const [contentHeight, setContentHeight] = useState(window.innerHeight - 128);
+  const { loading, error, data } = useQuery(GET_USERS);
   useEffect(() => {
     window.addEventListener("resize", () => {
       setContentHeight(window.innerHeight - 128);
@@ -66,8 +79,8 @@ const App = () => {
               }, 300);
             }}
           >
-            {list.map((item) => (
-              <Chat key={item} />
+            {(data?.users ?? []).map((item) => (
+              <Chat key={item.id} name={item.name} />
             ))}
           </div>
           <div>2</div>
@@ -90,7 +103,7 @@ const App = () => {
     </div>
   );
 };
-export const Chat = () => {
+export const Chat = ({ name }: { name: string }) => {
   return (
     <div>
       <div className="h-25 flex flex-row flex-1 box-border">
@@ -101,7 +114,7 @@ export const Chat = () => {
           />
         </div>
         <div className="flex flex-col pb-4 pt-4 justify-center flex-1 box-border">
-          <div className="text-xl">用户名</div>
+          <div className="text-xl">{name}</div>
           <div className="text-xl text-neutral-400 box-border">聊天内容</div>
         </div>
         <div className="pt-4 text-xl text-neutral-400 pr-3 box-border">
