@@ -4,27 +4,30 @@ import App from "./App.tsx";
 import ErrorPage from "./error-page.tsx";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Chatui from "./chatui.tsx";
-import { createApolloClient } from "./client.ts";
 import { ApolloProvider } from "@apollo/client";
-const client = createApolloClient();
+import AddFriend from "./NewFriend.tsx";
+import { client } from "./client.ts";
+
 const router = createBrowserRouter([
   {
     path: "/",
-    element: (
-      <ApolloProvider client={client}>
-        <App />
-      </ApolloProvider>
-    ),
+    element: <App />,
     errorElement: <ErrorPage />,
   },
   {
     path: "chatui",
     element: <Chatui />,
   },
+  {
+    path: "AddFriend",
+    element: <AddFriend />,
+  },
 ]);
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <RouterProvider router={router} />
+    <ApolloProvider client={client}>
+      <RouterProvider router={router} />
+    </ApolloProvider>
   </React.StrictMode>,
 );

@@ -14,24 +14,29 @@ import { CarouselRef } from "antd/es/carousel";
 import Find from "./find.tsx";
 import { useQuery } from "@apollo/client";
 import { gql } from "./__generated__";
-
-// @ts-ignore
-const GET_USERS = gql`
-  query getUsers {
-    users {
+const USERS = gql(`
+  query user($id: Int!) {
+    users(where: {id: {_eq: $id}}) {
+      name 
+      phone
       id
-      name
     }
   }
-`;
-
+`);
+const chat_content = gql(`query Chat_Content($to: Int!) {
+  chats(where: {to: {_eq: $to}}) {
+    id
+    text
+    time
+  }
+}
+`);
 const App = () => {
   const navigate = useNavigate();
   const ref = useRef<CarouselRef>(null);
   const [viewIndex, setViewIndex] = useState(0);
   const [transitionStage, setTransistionStage] = useState("fadeIn");
   const [contentHeight, setContentHeight] = useState(window.innerHeight - 128);
-  const { loading, error, data } = useQuery(GET_USERS);
   useEffect(() => {
     window.addEventListener("resize", () => {
       setContentHeight(window.innerHeight - 128);
@@ -40,13 +45,23 @@ const App = () => {
   useEffect(() => {
     setTransistionStage("fadeIn");
   }, []);
+
+  const CONTACTS = gql(`
+  query contact {
+  contacts {
+    contact_user {
+      id
+      name
+      phone
+    }
+    contact_user_id
+  }
+}
+`);
+  const { data } = useQuery(CONTACTS, { pollInterval: 100 });
+
   return (
-    <div
-      style={{
-        width: "100%",
-        height: "100%",
-      }}
-    >
+    <div className={"h-full w-full"}>
       <header
         className="w-full text-xl flex items-center justify-between bg-neutral-100 box-border"
         style={{ height: "64px" }}
@@ -54,12 +69,20 @@ const App = () => {
         <div className="flex flex-1 box-border" />
         <div className="flex flex-1 justify-center items-center box-border">
           {tabs.map((tab, i) => (
-            <div>{i === viewIndex && `${tab.name}`} </div>
+            <div key={i}>{i === viewIndex && `${tab.name}`} </div>
           ))}
         </div>
         <div className="flex flex-1 justify-end items-center box-border">
           <SearchOutlined className={"text-xl mr-5 box-border"} />
-          <PlusCircleOutlined className={"text-xl mr-5 box-border"} />
+          <PlusCircleOutlined
+            className={"text-xl mr-5 box-border"}
+            onClick={() => {
+              setTransistionStage("fadeOut");
+              setTimeout(() => {
+                navigate("AddFriend");
+              }, 300);
+            }}
+          />
         </div>
       </header>
       <div style={{ overflow: "auto", height: contentHeight }}>
@@ -70,17 +93,25 @@ const App = () => {
             setViewIndex(v);
           }}
         >
-          <div
-            className={`${transitionStage}`}
-            onClick={() => {
-              setTransistionStage("fadeOut");
-              setTimeout(() => {
-                navigate("chatui");
-              }, 300);
-            }}
-          >
-            {(data?.users ?? []).map((item) => (
-              <Chat key={item.id} name={item.name} />
+          <div>
+            {(data?.contacts ?? []).map((item) => (
+              <div
+                className={`${transitionStage}`}
+                onClick={() => {
+                  setTransistionStage("fadeOut");
+                  setTimeout(() => {
+                    navigate("chatui", {
+                      state: {
+                        contact_user_id: item.contact_user_id,
+                        contact_user_name: item.contact_user?.name,
+                      },
+                    });
+                  }, 300);
+                }}
+                key={item.contact_user_id}
+              >
+                <Contact contact_id={item.contact_user_id} />
+              </div>
             ))}
           </div>
           <div>2</div>
@@ -103,7 +134,11 @@ const App = () => {
     </div>
   );
 };
-export const Chat = ({ name }: { name: string }) => {
+export const Contact = ({ contact_id }: { contact_id: number }) => {
+  const { data } = useQuery(USERS, { variables: { id: contact_id } });
+  const { data: Contents } = useQuery(chat_content, {
+    variables: { to: contact_id },
+  });
   return (
     <div>
       <div className="h-25 flex flex-row flex-1 box-border">
@@ -114,11 +149,13 @@ export const Chat = ({ name }: { name: string }) => {
           />
         </div>
         <div className="flex flex-col pb-4 pt-4 justify-center flex-1 box-border">
-          <div className="text-xl">{name}</div>
-          <div className="text-xl text-neutral-400 box-border">聊天内容</div>
+          <div className="text-xl">{data?.users[0].name}</div>
+          <div className="text-xl text-neutral-400 box-border">
+            {Contents?.chats[0]?.text ? Contents.chats[0].text : ""}
+          </div>
         </div>
         <div className="pt-4 text-xl text-neutral-400 pr-3 box-border">
-          1:30
+          {Contents?.chats[0]?.time ? Contents.chats[0].time : ""}
         </div>
       </div>
     </div>
