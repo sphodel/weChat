@@ -6,25 +6,17 @@ import {
   CompassOutlined,
   TeamOutlined,
 } from "@ant-design/icons";
+import moment from "moment";
 import { Carousel } from "antd";
 import "./App.css";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { CarouselRef } from "antd/es/carousel";
 import Find from "./find.tsx";
-import { useQuery } from "@apollo/client";
 import { gql } from "./__generated__";
-const USERS = gql(`
-  query user($id: Int!) {
-    users(where: {id: {_eq: $id}}) {
-      name 
-      phone
-      id
-    }
-  }
-`);
-const chat_content = gql(`query Chat_Content($to: Int!) {
-  chats(where: {to: {_eq: $to}}) {
+import { client } from "./client.ts";
+const chatRecordsQuery = gql(`query Chat_Content($to: Int!) {
+  chats(where: {to: {_eq: $to}} order_by: {time: desc}, limit: 1) {
     id
     text
     time
@@ -35,18 +27,21 @@ const App = () => {
   const navigate = useNavigate();
   const ref = useRef<CarouselRef>(null);
   const [viewIndex, setViewIndex] = useState(0);
-  const [transitionStage, setTransistionStage] = useState("fadeIn");
+  const [transitionStage, setTransitionStage] = useState("fadeIn");
   const [contentHeight, setContentHeight] = useState(window.innerHeight - 128);
-  useEffect(() => {
-    window.addEventListener("resize", () => {
-      setContentHeight(window.innerHeight - 128);
-    });
-  }, []);
-  useEffect(() => {
-    setTransistionStage("fadeIn");
-  }, []);
-
-  const CONTACTS = gql(`
+  const [chatRecordsList, setChatRecordsList] = useState<
+    { text: string; time: Date }[]
+  >([]);
+  type Contact = {
+    contact_user: {
+      id: number;
+      name: string;
+      phone: string;
+    };
+    contact_user_id: number;
+  };
+  const [contactsInfo, setContactsInfo] = useState<Contact[]>([]);
+  const getContactsInfo = gql(`
   query contact {
   contacts {
     contact_user {
@@ -58,8 +53,107 @@ const App = () => {
   }
 }
 `);
-  const { data } = useQuery(CONTACTS, { pollInterval: 100 });
+  const fetchContactsInfo = async () => {
+    const res = await client.query({
+      query: getContactsInfo,
+    });
+    return res.data.contacts;
+  };
+  const fetchChatRecords = async (id: number) => {
+    const result = await client.query({
+      query: chatRecordsQuery,
+      variables: { to: id },
+    });
+    return {
+      text: result.data.chats[0].text,
+      time: result.data.chats[0].time as Date,
+    };
+  };
+  useEffect(() => {
+    window.addEventListener("resize", () => {
+      setContentHeight(window.innerHeight - 128);
+    });
+  }, []);
+  useEffect(() => {
+    setTransitionStage("fadeIn");
+  }, []);
 
+  const eachContact = () => {
+    return contactsInfo.map((item, i) => (
+      <div
+        className={`${transitionStage}`}
+        onClick={() => {
+          setTransitionStage("fadeOut");
+          setTimeout(() => {
+            navigate("chatui", {
+              state: {
+                contact_user_id: item.contact_user_id,
+                contact_user_name: item.contact_user?.name,
+              },
+            });
+          }, 300);
+        }}
+        key={item.contact_user_id}
+      >
+        <Contact
+          name={item.contact_user?.name}
+          text={chatRecordsList[i].text}
+          time={chatRecordsList[i].time}
+        />
+      </div>
+    ));
+  };
+  const text = async () => {
+    const fetchInfo = await fetchContactsInfo();
+    const promisesChatRecords = fetchInfo.map(async (Info) =>
+      fetchChatRecords(Info.contact_user_id),
+    );
+    const latestChatRecords = await Promise.all(promisesChatRecords);
+    setChatRecordsList(latestChatRecords);
+    const promisesContactInfo = fetchInfo.map((id) => id);
+    const resultContactInfo = await Promise.all(promisesContactInfo);
+    setContactsInfo(resultContactInfo);
+    console.log(latestChatRecords);
+  };
+  useEffect(() => {
+    const fetch = async () => {
+      await text();
+    };
+    void fetch();
+    return () => {
+      console.log(1);
+    };
+  }, []);
+  const Contact = ({
+    name,
+    text,
+    time,
+  }: {
+    name: string | undefined;
+    text: string;
+    time: Date;
+  }) => {
+    return (
+      <div>
+        <div className="h-25 flex flex-row flex-1 box-border">
+          <div className="flex w-24 h-24 items-center justify-center">
+            <img
+              className="h-12 w-12 box-border"
+              src="https://picx.zhimg.com/80/v2-6afa72220d29f045c15217aa6b275808_720w.webp?source=1940ef5c"
+              alt={""}
+            />
+          </div>
+          <div className="flex flex-col pb-4 pt-4 justify-center flex-1 box-border">
+            <div className="text-xl">{name}</div>
+            <div className="text-xl text-neutral-400 box-border">{text}</div>
+          </div>
+          <div className="pt-4 text-xl text-neutral-400 pr-3 box-border">
+            {moment(time).format("LT")}
+          </div>
+        </div>
+      </div>
+    );
+  };
   return (
     <div className={"h-full w-full"}>
       <header
@@ -77,7 +171,7 @@ const App = () => {
           <PlusCircleOutlined
             className={"text-xl mr-5 box-border"}
             onClick={() => {
-              setTransistionStage("fadeOut");
+              setTransitionStage("fadeOut");
               setTimeout(() => {
                 navigate("AddFriend");
               }, 300);
@@ -93,27 +187,7 @@ const App = () => {
             setViewIndex(v);
           }}
         >
-          <div>
-            {(data?.contacts ?? []).map((item) => (
-              <div
-                className={`${transitionStage}`}
-                onClick={() => {
-                  setTransistionStage("fadeOut");
-                  setTimeout(() => {
-                    navigate("chatui", {
-                      state: {
-                        contact_user_id: item.contact_user_id,
-                        contact_user_name: item.contact_user?.name,
-                      },
-                    });
-                  }, 300);
-                }}
-                key={item.contact_user_id}
-              >
-                <Contact contact_id={item.contact_user_id} />
-              </div>
-            ))}
-          </div>
+          <div>{eachContact()}</div>
           <div>2</div>
           <div>
             <Find />
@@ -131,33 +205,6 @@ const App = () => {
           ref.current.goTo(i);
         }}
       />
-    </div>
-  );
-};
-export const Contact = ({ contact_id }: { contact_id: number }) => {
-  const { data } = useQuery(USERS, { variables: { id: contact_id } });
-  const { data: Contents } = useQuery(chat_content, {
-    variables: { to: contact_id },
-  });
-  return (
-    <div>
-      <div className="h-25 flex flex-row flex-1 box-border">
-        <div className="flex w-24 h-24 items-center justify-center">
-          <img
-            className="h-12 w-12 box-border"
-            src="https://picx.zhimg.com/80/v2-6afa72220d29f045c15217aa6b275808_720w.webp?source=1940ef5c"
-          />
-        </div>
-        <div className="flex flex-col pb-4 pt-4 justify-center flex-1 box-border">
-          <div className="text-xl">{data?.users[0].name}</div>
-          <div className="text-xl text-neutral-400 box-border">
-            {Contents?.chats[0]?.text ? Contents.chats[0].text : ""}
-          </div>
-        </div>
-        <div className="pt-4 text-xl text-neutral-400 pr-3 box-border">
-          {Contents?.chats[0]?.time ? Contents.chats[0].time : ""}
-        </div>
-      </div>
     </div>
   );
 };

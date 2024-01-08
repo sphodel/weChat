@@ -60,9 +60,9 @@ const AddFriend = () => {
           variables: { user_id: 1, contact_user_id: user.id },
         });
         await messageApi.success("添加成功");
-      } catch (error: any) {
+      } catch (error) {
         console.log(error);
-        await messageApi.warning(error.message);
+        await messageApi.warning((error as Error).message);
       }
       return;
     }

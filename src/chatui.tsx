@@ -10,54 +10,59 @@ import { Button, Input, message, Popover } from "antd";
 import { gql } from "./__generated__";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useMutation, useQuery } from "@apollo/client";
-import { loadErrorMessages } from "@apollo/client/dev";
-const chat =
-  gql(`mutation Chat($id: Int!, $text: String!, $time: timestamp!, $to: Int!) {
-  insert_chats_one(object: {id: $id, text: $text, time: $time, to: $to, from: 1}) {
+const insertChatText =
+  gql(`mutation Chat( $text: String!, $time: timestamp!, $to: Int!) {
+  insert_chats_one(object: {text: $text, time: $time, to: $to, from: 1}) {
     text
   }
 }
 `);
-const Delete = gql(`mutation delete_contact($contact_user_id: Int!) {
+const removeContact = gql(`mutation delete_contact($contact_user_id: Int!) {
   delete_contacts(where: {contact_user_id: {_eq: $contact_user_id}}) {
     returning {
       user_id
     }
   }
 }`);
-const chat_content = gql(`query ChatContent($to: Int!) {
-  chats(where: {to: {_eq: $to}}) {
+const chatContent = gql(`query ChatContent($to: Int!) {
+  chats(where: {to: {_eq: $to}} order_by: {time: desc}) {
     text
   }
 }
 `);
 const Content = ({ contact_user_id }: { contact_user_id: number }) => {
-  loadErrorMessages();
   const navigate = useNavigate();
-  const [delete_contact] = useMutation(Delete, {
+  const [remove_contact] = useMutation(removeContact, {
     variables: { contact_user_id },
   });
+  const handleRemoveContact = async () => {
+    await remove_contact();
+    navigate(-1);
+  };
   return (
-    <div
-      className={"w-20"}
-      onClick={async () => {
-        await delete_contact();
-        navigate(-1);
-      }}
-    >
+    <div className={"w-20"} onClick={handleRemoveContact}>
       <p>删除</p>
     </div>
   );
 };
+
 const Chatui = () => {
   const location = useLocation();
   return (
     <>
       <Top
-        contact_user_id={location.state.contact_user_id}
-        contact_user_name={location.state.contact_user_name}
+        contact_user_id={
+          (location.state as { contact_user_id: number }).contact_user_id
+        }
+        contact_user_name={
+          (location.state as { contact_user_name: string }).contact_user_name
+        }
       />
-      <Bottom contact_user_id={location.state.contact_user_id} />
+      <Bottom
+        contact_user_id={
+          (location.state as { contact_user_id: number }).contact_user_id
+        }
+      />
     </>
   );
 };
@@ -99,39 +104,46 @@ const Bottom = ({ contact_user_id }: { contact_user_id: number }) => {
   const [messages, setMessages] = useState<string[]>([]);
   const [input, setInput] = useState("");
   const [messageApi, contextHolder] = message.useMessage();
-  const [content] = useMutation(chat, {
+  const [contact_chat_content] = useMutation(insertChatText, {
     variables: {
-      id: 4,
       to: contact_user_id,
       text: input,
       time: new Date().toISOString(),
     },
   });
-  const { data } = useQuery(chat_content, {
+  const { data } = useQuery(chatContent, {
     variables: { to: contact_user_id },
+    pollInterval: 500,
   });
   const send = async () => {
     if (input === "") {
       await messageApi.warning("发送内容不能为空");
       return;
     }
-    await content();
+    await contact_chat_content();
     setMessages([...messages, input]);
     setInput("");
     return messages;
   };
-  console.log(data);
   return (
     <>
       {contextHolder}
-      <div style={{ overflow: "auto", height: contentHeight }}>
+      <div
+        style={{
+          overflow: "auto",
+          height: contentHeight,
+          display: "flex",
+          flexDirection: "column-reverse",
+        }}
+      >
         <div className={"flex flex-col-reverse"}>
           {(data?.chats ?? []).map((msg, index) => (
-            <div key={index} className="message flex flex-col items-end">
+            <div key={index} className="message flex flex-col items-end ">
               <div className="flex items-end mb-3">
                 <div>{msg.text}</div>
                 <img
                   src="https://picx.zhimg.com/80/v2-6afa72220d29f045c15217aa6b275808_720w.webp?source=1940ef5c"
+                  alt={""}
                   className="w-12 h-12 ml-3"
                 />
               </div>
