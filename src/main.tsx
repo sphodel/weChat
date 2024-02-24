@@ -2,13 +2,13 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App.tsx";
 import ErrorPage from "./error-page.tsx";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { createHashRouter, RouterProvider } from "react-router-dom";
 import Chatui from "./chatui.tsx";
 import { ApolloProvider } from "@apollo/client";
 import AddFriend from "./NewFriend.tsx";
 import { client } from "./client.ts";
 
-const router = createBrowserRouter([
+const router = createHashRouter([
   {
     path: "/",
     element: <App />,

@@ -23,6 +23,18 @@ const chatRecordsQuery = gql(`query Chat_Content($to: Int!) {
   }
 }
 `);
+const getContactsInfo = gql(`
+  query contact {
+  contacts {
+    contact_user {
+      id
+      name
+      phone
+    }
+    contact_user_id
+  }
+}
+`);
 const App = () => {
   const navigate = useNavigate();
   const ref = useRef<CarouselRef>(null);
@@ -41,18 +53,14 @@ const App = () => {
     contact_user_id: number;
   };
   const [contactsInfo, setContactsInfo] = useState<Contact[]>([]);
-  const getContactsInfo = gql(`
-  query contact {
-  contacts {
-    contact_user {
-      id
-      name
-      phone
-    }
-    contact_user_id
-  }
-}
-`);
+  useEffect(() => {
+    window.addEventListener("resize", () => {
+      setContentHeight(window.innerHeight - 128);
+    });
+  }, []);
+  useEffect(() => {
+    setTransitionStage("fadeIn");
+  }, []);
   const fetchContactsInfo = async () => {
     const res = await client.query({
       query: getContactsInfo,
@@ -69,14 +77,6 @@ const App = () => {
       time: result.data.chats[0].time as Date,
     };
   };
-  useEffect(() => {
-    window.addEventListener("resize", () => {
-      setContentHeight(window.innerHeight - 128);
-    });
-  }, []);
-  useEffect(() => {
-    setTransitionStage("fadeIn");
-  }, []);
 
   const eachContact = () => {
     return contactsInfo.map((item, i) => (
@@ -97,7 +97,7 @@ const App = () => {
       >
         <Contact
           name={item.contact_user?.name}
-          text={chatRecordsList[i].text}
+          text={chatRecordsList[i]?.text}
           time={chatRecordsList[i].time}
         />
       </div>
@@ -112,6 +112,7 @@ const App = () => {
     setChatRecordsList(latestChatRecords);
     const promisesContactInfo = fetchInfo.map((id) => id);
     const resultContactInfo = await Promise.all(promisesContactInfo);
+    // @ts-ignore
     setContactsInfo(resultContactInfo);
     console.log(latestChatRecords);
   };
@@ -130,7 +131,7 @@ const App = () => {
     time,
   }: {
     name: string | undefined;
-    text: string;
+    text: string | undefined;
     time: Date;
   }) => {
     return (
@@ -195,7 +196,7 @@ const App = () => {
           <div>4</div>
         </Carousel>
       </div>
-      <Underside
+      <Border_Bottom
         index={viewIndex}
         setViewIndex={(i) => {
           setViewIndex(i);
@@ -216,7 +217,7 @@ const tabs = [
   { name: "我", icon: <UserOutlined /> },
 ];
 
-const Underside = ({
+const Border_Bottom = ({
   setViewIndex,
   index,
 }: {

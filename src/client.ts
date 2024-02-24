@@ -18,7 +18,7 @@ const defaultOptions: DefaultOptions = {
 const createApolloClient = () => {
   return new ApolloClient({
     link: new HttpLink({
-      uri: "http://localhost:8080/v1/graphql",
+      uri: "http://121.36.204.230:8080/v1/graphql",
     }),
     cache: new InMemoryCache({ resultCaching: false }),
     defaultOptions: defaultOptions,
