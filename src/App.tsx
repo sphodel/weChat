@@ -112,6 +112,7 @@ const App = () => {
     setChatRecordsList(latestChatRecords);
     const promisesContactInfo = fetchInfo.map((id) => id);
     const resultContactInfo = await Promise.all(promisesContactInfo);
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     setContactsInfo(resultContactInfo);
     console.log(latestChatRecords);
