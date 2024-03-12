@@ -7,7 +7,8 @@ import Chatui from "./chatui.tsx";
 import { ApolloProvider } from "@apollo/client";
 import AddFriend from "./NewFriend.tsx";
 import { client } from "./client.ts";
-
+import NewReg from "./register.tsx";
+import LoginPage from "./login.tsx";
 const router = createHashRouter([
   {
     path: "/",
@@ -22,6 +23,14 @@ const router = createHashRouter([
     path: "AddFriend",
     element: <AddFriend />,
   },
+  {
+    path:"register",
+    element:<NewReg />
+  },
+  {
+    path:"login",
+    element:<LoginPage />
+  }
 ]);
 
 ReactDOM.createRoot(document.getElementById("root")!).render(

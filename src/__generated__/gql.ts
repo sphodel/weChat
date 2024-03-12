@@ -21,6 +21,7 @@ const documents = {
     "mutation Chat( $text: String!, $time: timestamp!, $to: Int!) {\n  insert_chats_one(object: {text: $text, time: $time, to: $to, from: 1}) {\n    text\n  }\n}\n": types.ChatDocument,
     "mutation delete_contact($contact_user_id: Int!) {\n  delete_contacts(where: {contact_user_id: {_eq: $contact_user_id}}) {\n    returning {\n      user_id\n    }\n  }\n}": types.Delete_ContactDocument,
     "query ChatContent($to: Int!) {\n  chats(where: {to: {_eq: $to}} order_by: {time: desc}) {\n    text\n  }\n}\n": types.ChatContentDocument,
+    "mutation reg_new_user($password: String!, $name: String!, $phone: String = \"\") {\n  insert_users_one(object: {password: $password, phone: $phone, name: $name}) {\n    id\n  }\n}": types.Reg_New_UserDocument,
 };
 
 /**
@@ -69,6 +70,10 @@ export function gql(source: "mutation delete_contact($contact_user_id: Int!) {\n
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(source: "query ChatContent($to: Int!) {\n  chats(where: {to: {_eq: $to}} order_by: {time: desc}) {\n    text\n  }\n}\n"): (typeof documents)["query ChatContent($to: Int!) {\n  chats(where: {to: {_eq: $to}} order_by: {time: desc}) {\n    text\n  }\n}\n"];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(source: "mutation reg_new_user($password: String!, $name: String!, $phone: String = \"\") {\n  insert_users_one(object: {password: $password, phone: $phone, name: $name}) {\n    id\n  }\n}"): (typeof documents)["mutation reg_new_user($password: String!, $name: String!, $phone: String = \"\") {\n  insert_users_one(object: {password: $password, phone: $phone, name: $name}) {\n    id\n  }\n}"];
 
 export function gql(source: string) {
   return (documents as any)[source] ?? {};

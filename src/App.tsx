@@ -15,6 +15,7 @@ import { CarouselRef } from "antd/es/carousel";
 import Find from "./find.tsx";
 import { gql } from "./__generated__";
 import { client } from "./client.ts";
+import LoginPage from "./login.tsx";
 const chatRecordsQuery = gql(`query Chat_Content($to: Int!) {
   chats(where: {to: {_eq: $to}} order_by: {time: desc}, limit: 1) {
     id
@@ -141,7 +142,7 @@ const App = () => {
           <div className="flex w-24 h-24 items-center justify-center">
             <img
               className="h-12 w-12 box-border"
-              src="https://picx.zhimg.com/80/v2-6afa72220d29f045c15217aa6b275808_720w.webp?source=1940ef5c"
+              src="user_image.jpg"
               alt={""}
             />
           </div>
@@ -168,12 +169,13 @@ const App = () => {
             <div key={i}>{i === viewIndex && `${tab.name}`} </div>
           ))}
         </div>
+
         <div className="flex flex-1 justify-end items-center box-border">
           <SearchOutlined className={"text-xl mr-5 box-border"} />
           <PlusCircleOutlined
             className={"text-xl mr-5 box-border"}
             onClick={() => {
-              setTransitionStage("fadeOut");
+              setTransitionStage("fadeOut")
               setTimeout(() => {
                 navigate("AddFriend");
               }, 300);
@@ -190,7 +192,7 @@ const App = () => {
           }}
         >
           <div>{eachContact()}</div>
-          <div>2</div>
+          <div><LoginPage /></div>
           <div>
             <Find />
           </div>
