@@ -9,10 +9,11 @@ import {
 import { Button, Input, message, Popover } from "antd";
 import { gql } from "./__generated__";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useMutation, useQuery } from "@apollo/client";
+import {useMutation,useSubscription} from "@apollo/client";
+import { loadErrorMessages, loadDevMessages } from "@apollo/client/dev";
 const insertChatText =
-  gql(`mutation Chat( $text: String!, $time: timestamp!, $to: Int!) {
-  insert_chats_one(object: {text: $text, time: $time, to: $to, from: 1}) {
+  gql(`mutation Chat($from: Int!, $text: String!, $time: timestamp!, $to: Int!) {
+  insert_chats_one(object: {from: $from, text: $text, time: $time, to: $to}) {
     text
   }
 }
@@ -24,13 +25,15 @@ const removeContact = gql(`mutation delete_contact($contact_user_id: Int!) {
     }
   }
 }`);
-const chatContent = gql(`query ChatContent($to: Int!) {
-  chats(where: {to: {_eq: $to}} order_by: {time: desc}) {
+const chatContent = gql(`subscription ChatContent($userId: Int!) {
+  chats(where: {_or: [{to: {_eq: $userId}}, {from: {_eq: $userId}}]}, order_by: {time: desc}) {
     text
+    from
   }
 }
 `);
 const Content = ({ contact_user_id }: { contact_user_id: number }) => {
+
   const navigate = useNavigate();
   const [remove_contact] = useMutation(removeContact, {
     variables: { contact_user_id },
@@ -47,6 +50,7 @@ const Content = ({ contact_user_id }: { contact_user_id: number }) => {
 };
 
 const Chatui = () => {
+  loadErrorMessages()
   const location = useLocation();
   return (
     <>
@@ -61,7 +65,7 @@ const Chatui = () => {
       <Bottom
         contact_user_id={
           (location.state as { contact_user_id: number }).contact_user_id
-        }
+        } user_id={(location.state as { user_id: number }).user_id}
       />
     </>
   );
@@ -94,7 +98,7 @@ const Top = ({
     </>
   );
 };
-const Bottom = ({ contact_user_id }: { contact_user_id: number }) => {
+const Bottom = ({ contact_user_id,user_id }: { contact_user_id: number,user_id:number }) => {
   const [contentHeight, setContentHeight] = useState(window.innerHeight - 128);
   useEffect(() => {
     window.addEventListener("resize", () => {
@@ -106,15 +110,16 @@ const Bottom = ({ contact_user_id }: { contact_user_id: number }) => {
   const [messageApi, contextHolder] = message.useMessage();
   const [contact_chat_content] = useMutation(insertChatText, {
     variables: {
+      from:user_id,
       to: contact_user_id,
       text: input,
       time: new Date().toISOString(),
     },
   });
-  const { data } = useQuery(chatContent, {
-    variables: { to: contact_user_id },
-    pollInterval: 500,
-  });
+  const { data } = useSubscription(chatContent, {
+    variables: { userId: user_id }}
+  );
+
   const send = async () => {
     if (input === "") {
       await messageApi.warning("发送内容不能为空");
@@ -138,16 +143,16 @@ const Bottom = ({ contact_user_id }: { contact_user_id: number }) => {
       >
         <div className={"flex flex-col-reverse"}>
           {(data?.chats ?? []).map((msg, index) => (
-            <div key={index} className="message flex flex-col items-end ">
-              <div className="flex items-end mb-3">
-                <div>{msg.text}</div>
-                <img
-                  src="https://picx.zhimg.com/80/v2-6afa72220d29f045c15217aa6b275808_720w.webp?source=1940ef5c"
-                  alt={""}
-                  className="w-12 h-12 ml-3"
-                />
+              <div key={index} className={`message flex pr-3 ${msg.from == user_id ? "justify-end" : ""}`}>
+                <div className="flex mb-3 items-center">
+                  <div className={"w-20 h-10 flex justify-center items-center"}>{msg.text}</div>
+                  <img
+                      src="https://picx.zhimg.com/80/v2-6afa72220d29f045c15217aa6b275808_720w.webp?source=1940ef5c"
+                      alt={""}
+                      className="w-12 h-12 ml-3"
+                  />
+                </div>
               </div>
-            </div>
           ))}
         </div>
       </div>

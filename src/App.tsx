@@ -10,23 +10,23 @@ import moment from "moment";
 import { Carousel } from "antd";
 import "./App.css";
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import {useLocation, useNavigate} from "react-router-dom";
 import { CarouselRef } from "antd/es/carousel";
 import Find from "./find.tsx";
 import { gql } from "./__generated__";
 import { client } from "./client.ts";
-import LoginPage from "./login.tsx";
-const chatRecordsQuery = gql(`query Chat_Content($to: Int!) {
-  chats(where: {to: {_eq: $to}} order_by: {time: desc}, limit: 1) {
+const chatRecordsQuery = gql(`query Chat_Content($userId:Int!) {
+  chats(order_by: {time: desc}, limit: 1, where: {_or: [{to: {_eq: $userId}}, {from: {_eq:$userId}}]}) {
     id
     text
     time
   }
 }
+
 `);
 const getContactsInfo = gql(`
-  query contact {
-  contacts {
+  query contact($user_id: Int!) {
+  contacts(where: {user_id: {_eq: $user_id}}) {
     contact_user {
       id
       name
@@ -35,15 +35,23 @@ const getContactsInfo = gql(`
     contact_user_id
   }
 }
+
 `);
 const App = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  useEffect(() => {
+    if (location.state == null) {
+      navigate('/login');
+    }
+  }, [location.state]);
+  const user_id = location.state?.userID;
   const ref = useRef<CarouselRef>(null);
   const [viewIndex, setViewIndex] = useState(0);
   const [transitionStage, setTransitionStage] = useState("fadeIn");
   const [contentHeight, setContentHeight] = useState(window.innerHeight - 128);
   const [chatRecordsList, setChatRecordsList] = useState<
-    { text: string; time: Date }[]
+    { text: string | undefined; time: Date }[]
   >([]);
   type Contact = {
     contact_user: {
@@ -65,20 +73,20 @@ const App = () => {
   const fetchContactsInfo = async () => {
     const res = await client.query({
       query: getContactsInfo,
+      variables:{user_id:user_id}
     });
     return res.data.contacts;
   };
   const fetchChatRecords = async (id: number) => {
     const result = await client.query({
       query: chatRecordsQuery,
-      variables: { to: id },
-    });
+      variables: { userId:user_id},
+    })
     return {
-      text: result.data.chats[0].text,
+      text: result.data.chats[0].text as string,
       time: result.data.chats[0].time as Date,
     };
   };
-
   const eachContact = () => {
     return contactsInfo.map((item, i) => (
       <div
@@ -88,6 +96,7 @@ const App = () => {
           setTimeout(() => {
             navigate("chatui", {
               state: {
+                user_id:user_id,
                 contact_user_id: item.contact_user_id,
                 contact_user_name: item.contact_user?.name,
               },
@@ -123,9 +132,6 @@ const App = () => {
       await text();
     };
     void fetch();
-    return () => {
-      console.log(1);
-    };
   }, []);
   const Contact = ({
     name,
@@ -177,7 +183,7 @@ const App = () => {
             onClick={() => {
               setTransitionStage("fadeOut")
               setTimeout(() => {
-                navigate("AddFriend");
+                navigate("AddFriend",{state:{userId:user_id}});
               }, 300);
             }}
           />
@@ -192,11 +198,13 @@ const App = () => {
           }}
         >
           <div>{eachContact()}</div>
-          <div><LoginPage /></div>
+          <div>2</div>
           <div>
             <Find />
           </div>
-          <div>4</div>
+          <div onClick={()=>{
+            navigate("login")
+          }}>退出</div>
         </Carousel>
       </div>
       <Border_Bottom

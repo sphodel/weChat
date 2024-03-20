@@ -2,14 +2,14 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App.tsx";
 import ErrorPage from "./error-page.tsx";
-import { createHashRouter, RouterProvider } from "react-router-dom";
+import {createBrowserRouter, RouterProvider} from "react-router-dom";
 import Chatui from "./chatui.tsx";
 import { ApolloProvider } from "@apollo/client";
 import AddFriend from "./NewFriend.tsx";
 import { client } from "./client.ts";
 import NewReg from "./register.tsx";
 import LoginPage from "./login.tsx";
-const router = createHashRouter([
+const router = createBrowserRouter([
   {
     path: "/",
     element: <App />,
@@ -24,7 +24,7 @@ const router = createHashRouter([
     element: <AddFriend />,
   },
   {
-    path:"register",
+    path:"login/register",
     element:<NewReg />
   },
   {

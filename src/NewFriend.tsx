@@ -3,7 +3,7 @@ import { useState } from "react";
 import { gql } from "./__generated__";
 import { client } from "./client.ts";
 import { LeftOutlined } from "@ant-design/icons";
-import { useNavigate } from "react-router-dom";
+import {useLocation, useNavigate} from "react-router-dom";
 
 const GET_CONTACT =
   gql(`query GET_CONTACT($user_id: Int!, $contact_user_id: Int!) {
@@ -26,6 +26,8 @@ const ADD_CONTACT =
   }
 }`);
 const AddFriend = () => {
+  const location=useLocation()
+  const userId = (location.state as { userId: number }).userId;
   const [NameInput, setNameInput] = useState("");
   const [PhoneInput, setPhoneInput] = useState("");
   const [messageApi, contextHolder] = message.useMessage();
@@ -41,15 +43,15 @@ const AddFriend = () => {
       return;
     }
 
-    const user = (res.data.users ?? [])[0];
-    if (user == null) {
+    const newContactId = (res.data.users ?? [])[0];
+    if (newContactId == null) {
       await messageApi.warning("用户不存在");
       return;
     }
     const contact = await client.query({
       query: GET_CONTACT,
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      variables: { user_id: 1, contact_user_id: user.id },
+      variables: { user_id: userId, contact_user_id: newContactId.id },
     });
     const list = [contact.data.contacts];
     console.log(list);
@@ -57,9 +59,14 @@ const AddFriend = () => {
       try {
         await client.mutate({
           mutation: ADD_CONTACT,
-          variables: { user_id: 1, contact_user_id: user.id },
+          variables: { user_id: userId, contact_user_id: newContactId.id },
+        }).then(async () => {
+          await client.mutate({
+            mutation: ADD_CONTACT,
+            variables: { user_id: newContactId.id, contact_user_id: userId },
+          });
+          await messageApi.success("添加成功");
         });
-        await messageApi.success("添加成功");
       } catch (error) {
         console.log(error);
         await messageApi.warning((error as Error).message);
